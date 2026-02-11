@@ -88,15 +88,21 @@ class FileHolderService:
 
         return file_meta
 
-    async def get_file_meta(self, file_id: uuid.UUID) -> FileMeta | None:
+    async def get_file_meta(self, file_id: uuid.UUID) -> FileMeta:
         """
         Получает метаданные файла по ID.
 
         Args:
             file_id (uuid.UUID): идентификатор файла
         Returns:
-            FileMeta | None: найденная запись или None
+            FileMeta: найденная запись
         """
+
+        file_meta = await self._file_meta_repository.get_by_id(file_id)
+        if file_meta is None:
+            raise ServiceFileNotFoundError("File metadata not found")
+
+        return file_meta
 
     async def get_file_by_id(self, file_id: uuid.UUID) -> bytes:
         """
@@ -108,11 +114,12 @@ class FileHolderService:
             bytes: содержимое файла
         """
         file_meta = await self.get_file_meta(file_id)
-        if file_meta is None:
-            raise ServiceFileNotFoundError("File metadata not found")
 
         file_path = self._generate_file_path(uuid.UUID(file_meta.uuid))
-        file_bytes = await self._file_repository.get(file_path)
+        try:
+            file_bytes = await self._file_repository.get(file_path)
+        except FileNotFoundError:
+            raise ServiceFileNotFoundError("File not found in storage")
 
         return file_bytes
 
@@ -155,8 +162,6 @@ class FileHolderService:
             bool: True если удалено
         """
         file_meta = await self.get_file_meta(file_id)
-        if file_meta is None:
-            raise ServiceFileNotFoundError("File metadata not found")
 
         file_path = self._generate_file_path(uuid.UUID(file_meta.uuid))
 
@@ -220,13 +225,16 @@ class FileHolderService:
         }
         await self._file_repository.delete_files_not_in_uuids(uuids)
 
-    async def get_file_meta_by_full_path(self, file_path: str) -> FileMeta | None:
+    async def get_file_meta_by_full_path(self, file_path: str) -> FileMeta:
         """
         Получает метаданные файла по полному пути.
 
         Args:
             file_path (str): полный путь к файлу
         Returns:
-            FileMeta | None: найденная запись или None
+            FileMeta: найденная запись
         """
-        return await self._file_meta_repository.get_by_full_path(file_path)
+        file_meta = await self._file_meta_repository.get_by_full_path(file_path)
+        if file_meta is None:
+            raise ServiceFileNotFoundError("File metadata not found")
+        return file_meta

@@ -130,8 +130,6 @@ async def get_file_meta(
         service (FileHolderService): сервис работы с файлами
     """
     meta = await service.get_file_meta(file_id)
-    if meta is None:
-        raise HTTPException(status_code=404, detail="File not found")
 
     return FileRead(
         id=UUID(meta.uuid),
