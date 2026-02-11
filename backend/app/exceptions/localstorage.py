@@ -10,12 +10,6 @@ class LocalStorageUnavailableError(LocalStorageError):
     pass
 
 
-class FileLockError(LocalStorageError):
-    """Вызывается, когда захват или освобождение блокировки файла не удается."""
-
-    pass
-
-
 class FileNotFoundError(LocalStorageError):
     """Вызывается, когда запрашиваемый файл не найден в хранилище."""
 

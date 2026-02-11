@@ -31,7 +31,6 @@ async def get_file_holder_service() -> AsyncGenerator[FileHolderService, None]:
     file_session = AsyncFileSession(
         storage_path=settings.file_storage_path,
         pending_prefix=settings.pending_file_prefix,
-        lock_timeout=settings.lock_timeout,
     )
     await file_session.recover()
 
