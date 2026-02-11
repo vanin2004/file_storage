@@ -24,18 +24,23 @@ async def health_check():
 
 @router.post("/files")
 async def post_file(
-    filename: Filename = Form(...),  # Имя файла без расширения
-    file_extension: FileExtension = Form(...),  # Расширение файла (например, "txt")
-    path: FilePath = Form(...),  # Путь расположения файла в хранилище
-    comment: str | None = Form(None),  # Опциональный комментарий к файлу
-    file: UploadFile = File(...),  # Загружаемый файл
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    filename: Filename = Form(...),
+    file_extension: FileExtension = Form(...),
+    path: FilePath = Form(...),
+    comment: str | None = Form(None),
+    file: UploadFile = File(...),
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> FileRead:
     """
     Загрузка нового файла.
-    Принимает метаданные файла и файл.
+
+    Args:
+        filename (Filename): имя файла без расширения
+        file_extension (FileExtension): расширение файла
+        path (FilePath): путь расположения файла
+        comment (str | None): опциональный комментарий
+        file (UploadFile): загружаемый файл
+        service (FileHolderService): сервис работы с файлами
     """
 
     file_meta_obj = FileCreate(
@@ -86,12 +91,16 @@ async def list_files(
 
 @router.get("/files/search")
 async def search_files(
-    file_path: FilePath = Query(...),  # Префикс пути для поиска файлов
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_path: FilePath = Query(...),
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> list[FileRead]:
-    """Поиск файлов по префиксу пути"""
+    """
+    Поиск файлов по префиксу пути.
+
+    Args:
+        file_path (FilePath): префикс пути
+        service (FileHolderService): сервис работы с файлами
+    """
     files_meta = await service.search_files_by_path(file_path)
     return [
         FileRead(
@@ -110,12 +119,16 @@ async def search_files(
 
 @router.get("/files/{file_id}/meta")
 async def get_file_meta(
-    file_id: UUID,  # Уникальный идентификатор файла
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_id: UUID,
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> FileRead:
-    """Получение метаданных файла по ID"""
+    """
+    Получение метаданных файла по ID.
+
+    Args:
+        file_id (UUID): идентификатор файла
+        service (FileHolderService): сервис работы с файлами
+    """
     meta = await service.get_file_meta(file_id)
     if meta is None:
         raise HTTPException(status_code=404, detail="File not found")
@@ -134,38 +147,49 @@ async def get_file_meta(
 
 @router.get("/files/{file_id}")
 async def get_file(
-    file_id: UUID,  # Уникальный идентификатор файла
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_id: UUID,
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> Response:
-    """Получение содержимого файла по ID"""
+    """
+    Получение содержимого файла по ID.
+
+    Args:
+        file_id (UUID): идентификатор файла
+        service (FileHolderService): сервис работы с файлами
+    """
     file_bytes = await service.get_file_by_id(file_id)
     return Response(content=file_bytes, media_type="application/octet-stream")
 
 
 @router.delete("/files/{file_id}")
 async def delete_file(
-    file_id: UUID,  # Уникальный идентификатор файла
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_id: UUID,
+    service: FileHolderService = Depends(get_file_holder_service),
 ):
-    """Удаление файла по ID"""
+    """
+    Удаление файла и метаданных по ID.
+
+    Args:
+        file_id (UUID): идентификатор файла
+        service (FileHolderService): сервис работы с файлами
+    """
     await service.delete_file(file_id)
     return {"status": "deleted", "file_id": str(file_id)}
 
 
 @router.put("/files/{file_id}")
 async def put_file(
-    file_id: UUID,  # Уникальный идентификатор файла
-    update: FileUpdate,  # Новые метаданные для полной замены
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_id: UUID,
+    update: FileUpdate,
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> FileRead:
     """
     Полная замена метаданных файла.
+
+    Args:
+        file_id (UUID): идентификатор файла
+        update (FileUpdate): новые метаданные
+        service (FileHolderService): сервис работы с файлами
     """
     updated = await service.update_file_meta(file_id=file_id, update=update)
     return FileRead(
@@ -182,14 +206,17 @@ async def put_file(
 
 @router.patch("/files/{file_id}")
 async def patch_file(
-    file_id: UUID,  # Уникальный идентификатор файла
-    update: FileUpdate,  # Новые метаданные для частичного обновления
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    file_id: UUID,
+    update: FileUpdate,
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> FileRead:
     """
     Частичное обновление метаданных файла.
+
+    Args:
+        file_id (UUID): идентификатор файла
+        update (FileUpdate): новые метаданные
+        service (FileHolderService): сервис работы с файлами
     """
     updated = await service.update_file_meta(file_id=file_id, update=update)
     return FileRead(
@@ -206,9 +233,7 @@ async def patch_file(
 
 @router.post("/files/synchronise")
 async def synchronise_files(
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    service: FileHolderService = Depends(get_file_holder_service),
 ):
     await service.sync_storage_with_db()
     return {"status": "synchronised"}
@@ -216,12 +241,16 @@ async def synchronise_files(
 
 @router.get("/files/meta/by-path")
 async def get_file_meta_by_full_path(
-    full_path: FilePath = Query(...),  # Полный путь к файлу для поиска метаданных
-    service: FileHolderService = Depends(
-        get_file_holder_service
-    ),  # Сервис для работы с файлами
+    full_path: FilePath = Query(...),
+    service: FileHolderService = Depends(get_file_holder_service),
 ) -> FileRead:
-    """Получение метаданных файла по полному пути"""
+    """
+    Получение метаданных файла по полному пути.
+
+    Args:
+        full_path (FilePath): полный путь к файлу
+        service (FileHolderService): сервис работы с файлами
+    """
     meta = await service.get_file_meta_by_full_path(full_path)
     if meta is None:
         raise HTTPException(status_code=404, detail="File not found")

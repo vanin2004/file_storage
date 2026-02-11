@@ -12,28 +12,28 @@ class FileMeta(Base):
 
     __tablename__ = "file_meta"
 
-    # Уникальный идентификатор файла (UUID)
     uuid: Mapped[str] = mapped_column(String, primary_key=True, index=True)
+    """Уникальный идентификатор файла (UUID)."""
 
-    # Имя файла (без расширения)
     filename: Mapped[str] = mapped_column(String, index=True)
+    """Имя файла (без расширения)."""
 
-    # Расширение файла (например, ".txt")
     file_extension: Mapped[str] = mapped_column(String, index=True)
+    """Расширение файла (например, ".txt")."""
 
-    # Размер файла в байтах
     size: Mapped[int] = mapped_column(Integer)
+    """Размер файла в байтах."""
 
-    # Виртуальный путь или категория файла (определяет иерархию директорий)
     path: Mapped[str] = mapped_column(String, index=True)
+    """Виртуальный путь или категория файла."""
 
-    # Произвольный комментарий к файлу
     comment: Mapped[str | None] = mapped_column(String, nullable=True)
+    """Произвольный комментарий к файлу."""
 
-    # Дата и время создания файла (в UTC)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    """Дата и время создания файла (UTC)."""
 
-    # Дата и время последнего обновления метаданных файла
     updated_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    """Дата и время последнего обновления метаданных файла."""

@@ -18,27 +18,45 @@ class FileHolderService:
 
     def __init__(
         self,
-        file_repository: FileRepository,  # Репозиторий для работы с файлами
-        file_meta_repository: FileMetaRepository,  # Репозиторий для работы с метаданными
+        file_repository: FileRepository,
+        file_meta_repository: FileMetaRepository,
     ):
+        """
+        Инициализация сервиса управления файлами.
+
+        Args:
+            file_repository (FileRepository): репозиторий работы с файлами
+            file_meta_repository (FileMetaRepository): репозиторий метаданных
+        """
         self._file_repository = file_repository
         self._file_meta_repository = file_meta_repository
 
     @staticmethod
-    def _generate_file_path(
-        file_id: uuid.UUID, file_extension: str
-    ) -> str:  # file_id: UUID файла, file_extension: расширение
-        """Генерирует уникальное имя файла для хранения на диске (UUID.ext)"""
+    def _generate_file_path(file_id: uuid.UUID) -> str:
+        """
+        Генерирует уникальное имя файла для хранения на диске (UUID).
+
+        Args:
+            file_id (uuid.UUID): идентификатор файла
+        Returns:
+            str: имя файла для хранения
+        """
         return f"{file_id}"
 
     async def create_file(
         self,
-        file_data: bytes,  # Содержимое файла в байтах
-        file_create: FileCreate,  # Метаданные для создания файла
+        file_data: bytes,
+        file_create: FileCreate,
     ) -> FileMeta:
         """
         Создает новый файл.
         Проверяет уникальность, сохраняет метаданные и содержимое.
+
+        Args:
+            file_data (bytes): содержимое файла
+            file_create (FileCreate): метаданные для создания
+        Returns:
+            FileMeta: созданная запись
         """
 
         if (
@@ -64,26 +82,36 @@ class FileHolderService:
             comment=file_create.comment,
         )
 
-        file_path = self._generate_file_path(file_id, file_create.file_extension)
+        file_path = self._generate_file_path(file_id)
 
         await self._file_repository.save(file_data, file_path)
 
         return file_meta
 
-    async def get_file_meta(
-        self, file_id: uuid.UUID
-    ) -> FileMeta | None:  # file_id: UUID файла
-        """Получает метаданные файла по ID"""
+    async def get_file_meta(self, file_id: uuid.UUID) -> FileMeta | None:
+        """
+        Получает метаданные файла по ID.
 
-    async def get_file_by_id(self, file_id: uuid.UUID) -> bytes:  # file_id: UUID файла
-        """Получает содержимое файла по ID"""
+        Args:
+            file_id (uuid.UUID): идентификатор файла
+        Returns:
+            FileMeta | None: найденная запись или None
+        """
+
+    async def get_file_by_id(self, file_id: uuid.UUID) -> bytes:
+        """
+        Получает содержимое файла по ID.
+
+        Args:
+            file_id (uuid.UUID): идентификатор файла
+        Returns:
+            bytes: содержимое файла
+        """
         file_meta = await self.get_file_meta(file_id)
         if file_meta is None:
             raise ServiceFileNotFoundError("File metadata not found")
 
-        file_path = self._generate_file_path(
-            uuid.UUID(file_meta.uuid), file_meta.file_extension
-        )
+        file_path = self._generate_file_path(uuid.UUID(file_meta.uuid))
         file_bytes = await self._file_repository.get(file_path)
 
         return file_bytes
@@ -92,9 +120,18 @@ class FileHolderService:
         self,
         file_path: str,
         filename: str,
-        file_extension: str,  # file_path: путь, filename: имя, file_extension: расширение
+        file_extension: str,
     ) -> bytes:
-        """Получает содержимое файла по полному пути, имени и расширению"""
+        """
+        Получает содержимое файла по полному пути, имени и расширению.
+
+        Args:
+            file_path (str): путь к файлу
+            filename (str): имя файла
+            file_extension (str): расширение файла
+        Returns:
+            bytes: содержимое файла
+        """
         file_meta = await self._file_meta_repository.get_by_path_filename_extension(
             file_path=file_path,
             filename=filename,
@@ -103,24 +140,25 @@ class FileHolderService:
         if file_meta is None:
             raise ServiceFileNotFoundError("File metadata not found")
 
-        file_path = self._generate_file_path(
-            uuid.UUID(file_meta.uuid), file_meta.file_extension
-        )
+        file_path = self._generate_file_path(uuid.UUID(file_meta.uuid))
         file_bytes = await self._file_repository.get(file_path)
 
         return file_bytes
 
-    async def delete_file(
-        self, file_id: uuid.UUID
-    ) -> bool:  # file_id: UUID файла для удаления
-        """Удаляет файл и его метаданные"""
+    async def delete_file(self, file_id: uuid.UUID) -> bool:
+        """
+        Удаляет файл и его метаданные.
+
+        Args:
+            file_id (uuid.UUID): идентификатор файла для удаления
+        Returns:
+            bool: True если удалено
+        """
         file_meta = await self.get_file_meta(file_id)
         if file_meta is None:
             raise ServiceFileNotFoundError("File metadata not found")
 
-        file_path = self._generate_file_path(
-            uuid.UUID(file_meta.uuid), file_meta.file_extension
-        )
+        file_path = self._generate_file_path(uuid.UUID(file_meta.uuid))
 
         await self._file_repository.delete(file_path)
         await self._file_meta_repository.delete(file_meta)
@@ -130,10 +168,15 @@ class FileHolderService:
     async def list_files(self) -> Sequence[FileMeta]:
         return await self._file_meta_repository.list()
 
-    async def search_files_by_path(
-        self, path_prefix: str
-    ) -> Sequence[FileMeta]:  # path_prefix: префикс пути для поиска
-        """Ищет файлы по префиксу пути"""
+    async def search_files_by_path(self, path_prefix: str) -> Sequence[FileMeta]:
+        """
+        Ищет файлы по префиксу пути.
+
+        Args:
+            path_prefix (str): префикс пути для поиска
+        Returns:
+            Sequence[FileMeta]: найденные файлы
+        """
 
         if len(path_prefix) == 0:
             return []
@@ -145,9 +188,17 @@ class FileHolderService:
     async def update_file_meta(
         self,
         file_id: uuid.UUID,
-        update: FileUpdate,  # file_id: UUID файла, update: данные для обновления
+        update: FileUpdate,
     ) -> FileMeta:
-        """Обновляет метаданные файла"""
+        """
+        Обновляет метаданные файла.
+
+        Args:
+            file_id (uuid.UUID): идентификатор файла
+            update (FileUpdate): данные для обновления
+        Returns:
+            FileMeta: обновленная запись
+        """
         file_meta = await self.get_file_meta(file_id)
         if file_meta is None:
             raise ServiceFileNotFoundError("File metadata not found")
@@ -170,4 +221,12 @@ class FileHolderService:
         await self._file_repository.delete_files_not_in_uuids(uuids)
 
     async def get_file_meta_by_full_path(self, file_path: str) -> FileMeta | None:
+        """
+        Получает метаданные файла по полному пути.
+
+        Args:
+            file_path (str): полный путь к файлу
+        Returns:
+            FileMeta | None: найденная запись или None
+        """
         return await self._file_meta_repository.get_by_full_path(file_path)

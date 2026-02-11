@@ -27,16 +27,13 @@ async def get_file_holder_service() -> AsyncGenerator[FileHolderService, None]:
     Зависимость Unit of Work, координирующая транзакции между БД и Файловой Системой.
     Гарантирует, что изменения в Файловой Системе будут зафиксированы только если успешна транзакция БД.
     """
-    # 1. Инициализация файловой сессии
     file_session = AsyncFileSession(
         storage_path=settings.file_storage_path,
         pending_prefix=settings.pending_file_prefix,
     )
     await file_session.recover()
 
-    # 2. Инициализация сессии БД
     async with async_session() as db_session:
-        # Создаем репозитории
         file_repo = FileRepository(file_session)
         meta_repo = FileMetaRepository(db_session)
 
@@ -48,12 +45,10 @@ async def get_file_holder_service() -> AsyncGenerator[FileHolderService, None]:
         try:
             yield service
 
-            # 3. Фаза коммита: Сначала БД (Источник Истины) -> Затем Файловая Система
             await db_session.commit()
             await file_session.commit()
 
         except Exception:
-            # 4. Фаза отката (Rollback)
             await db_session.rollback()
             await file_session.rollback()
             raise

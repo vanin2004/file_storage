@@ -1,17 +1,20 @@
+"""
+Определение типов с валидацией.
+Filename: 1-255 символов, буквы/цифры/._-.
+FileExtension: 0-10 символов, буквы и цифры.
+FilePath: 1-1024 символов, начинается и заканчивается на "/".
+"""
+
 from uuid import UUID
 from typing import Annotated
 from pydantic import BaseModel, Field
 
-# Определение типов с валидацией
-# Имя файла: от 1 до 255 символов, разрешены буквы, цифры, точки, подчеркивания и дефисы
 Filename = Annotated[
     str, Field(min_length=1, max_length=255, pattern=r"^[a-zA-Z0-9._-]+$")
 ]
-# Расширение файла: от 0 до 10 символов, только буквы и цифры
 FileExtension = Annotated[
     str, Field(min_length=0, max_length=10, pattern=r"^[a-zA-Z0-9]+$")
 ]
-# Путь к файлу (виртуальный): от 1 до 1024 символов, должен начинаться и заканчиваться с /
 FilePath = Annotated[
     str, Field(min_length=1, max_length=1024, pattern=r"^/[a-zA-Z0-9._/-]+/$")
 ]

@@ -17,12 +17,19 @@ class AsyncFileSession:
 
     def __init__(
         self,
-        storage_path: str,  # Путь к директории хранения файлов
-        pending_prefix: str = "pending_",  # Префикс для временных файлов
+        storage_path: str,
+        pending_prefix: str = "pending_",
     ):
+        """
+        Инициализация асинхронной файловой сессии.
+
+        Args:
+            storage_path (str): путь к директории хранения файлов
+            pending_prefix (str): префикс для временных файлов
+        """
         self._storage_path = storage_path
         self._pending_prefix = pending_prefix
-        self._pending: dict[str, bytes] = {}  # Буфер для ожидающих записи файлов
+        self._pending: dict[str, bytes] = {}
         os.makedirs(storage_path, exist_ok=True)
 
     async def recover(self) -> None:
@@ -88,15 +95,29 @@ class AsyncFileSession:
         finally:
             self._pending.clear()
 
-    async def get(self, file_name: str) -> bytes:  # file_name: имя файла для чтения
-        """Читает содержимое файла"""
+    async def get(self, file_name: str) -> bytes:
+        """
+        Читает содержимое файла.
+
+        Args:
+            file_name (str): имя файла для чтения
+        Returns:
+            bytes: содержимое файла
+        """
         async with aiofiles.open(
             os.path.join(self._storage_path, file_name), "rb"
         ) as in_file:
             return await in_file.read()
 
-    async def delete(self, file_name: str) -> bool:  # file_name: имя файла для удаления
-        """Удаляет файл из хранилища"""
+    async def delete(self, file_name: str) -> bool:
+        """
+        Удаляет файл из хранилища.
+
+        Args:
+            file_name (str): имя файла для удаления
+        Returns:
+            bool: True если файл удалён
+        """
         file_path = os.path.join(self._storage_path, file_name)
         if await aiofiles.os.path.exists(file_path):
             await aiofiles.os.remove(file_path)

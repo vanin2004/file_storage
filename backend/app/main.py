@@ -26,12 +26,10 @@ from app.exceptions.service import (
 from app.exceptions.database import DatabaseError
 from app.exceptions.localstorage import LocalStorageError, LocalStorageUnavailableError
 
-# Инициализация приложения FastAPI с настройками из settings
 app = FastAPI(
     title=settings.app_name, version=settings.app_version, debug=settings.debug
 )
 
-# Регистрация обработчиков ошибок
 app.add_exception_handler(ServiceFileNotFoundError, resource_not_found_handler)
 app.add_exception_handler(
     ServiceFileAlreadyExistsError, resource_already_exists_handler
@@ -43,18 +41,13 @@ app.add_exception_handler(
 app.add_exception_handler(LocalStorageError, local_storage_error_handler)
 app.add_exception_handler(Exception, global_exception_handler)
 
-# Регистрация обработчиков событий запуска
-# Создаем директорию для хранения файлов, если она не существует
 app.add_event_handler("startup", create_file_storage_directory)
-# Создаем таблицы в базе данных (если не существуют)
 app.add_event_handler("startup", create_database)
 
-# Подключение маршрутов API
 app.include_router(api_router)
 
 
 if __name__ == "__main__":
-    # Запуск сервера uvicorn для локальной разработки
     uvicorn.run(
         "app.main:app",
         host=settings.app_host,

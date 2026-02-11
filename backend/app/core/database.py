@@ -12,11 +12,7 @@ class Base(DeclarativeBase):
     pass
 
 
-# Создание асинхронного движка базы данных
 engine = create_async_engine(settings.database_url, echo=settings.debug)
-
-# Фабрика сессий. expire_on_commit=False важно для асинхронной работы,
-# чтобы объекты оставались доступными после коммита без нового запроса к БД.
 async_session = async_sessionmaker(bind=engine, expire_on_commit=False)
 
 
