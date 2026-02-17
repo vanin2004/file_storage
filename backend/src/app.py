@@ -50,7 +50,7 @@ app.add_exception_handler(
 
 if __name__ == "__main__":
     uvicorn.run(
-        "src.main:app",
+        "src.app:app",
         host=settings.app_host,
         port=settings.app_port,
         reload=settings.debug,

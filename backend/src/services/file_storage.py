@@ -36,7 +36,6 @@ class AsyncFileSession:
     def __init__(
         self,
         storage_path: str,
-        pending_prefix: str = "pending_",
     ):
         """
         Инициализация асинхронной файловой сессии.
@@ -46,21 +45,8 @@ class AsyncFileSession:
             pending_prefix (str): префикс для временных файлов
         """
         self._storage_path = storage_path
-        self._pending_prefix = pending_prefix
         self._pending: dict[str, bytes] = {}
         os.makedirs(storage_path, exist_ok=True)
-
-    async def recover(self) -> None:
-        """
-        Восстановление после сбоя.
-        Удаляет все 'повисшие' pending-файлы, которые не были закоммичены.
-        """
-        files = await aiofiles.os.listdir(self._storage_path)
-        pending_files = [f for f in files if f.startswith(self._pending_prefix)]
-
-        for pending_name in pending_files:
-            pending_path = os.path.join(self._storage_path, pending_name)
-            await aiofiles.os.remove(pending_path)
 
     async def add(self, file_bytes: bytes, file_name: str) -> None:
         """Добавляет файл в очередь на запись (в памяти)"""
@@ -68,14 +54,7 @@ class AsyncFileSession:
 
     async def flush(self) -> None:
         """Сбрасывает pending изменения на диск во временные файлы"""
-        for file_name, file_bytes in self._pending.items():
-            pending_name = f"{self._pending_prefix}{file_name}"
-            pending_path = os.path.join(self._storage_path, pending_name)
-            try:
-                async with aiofiles.open(pending_path, "wb") as out_file:
-                    await out_file.write(file_bytes)
-            except Exception:
-                raise FileWriteError(f"Failed to write pending file: {pending_name}")
+        pass  # Реализация отложенной записи в commit()
 
     async def commit(self) -> None:
         """
@@ -85,19 +64,10 @@ class AsyncFileSession:
         """
         try:
             for file_name in list(self._pending.keys()):
-                pending_name = f"{self._pending_prefix}{file_name}"
-                pending_path = os.path.join(self._storage_path, pending_name)
                 final_path = os.path.join(self._storage_path, file_name)
 
-                # Сначала запишем данные из памяти во временный файл
-                if file_name in self._pending:
-                    async with aiofiles.open(pending_path, "wb") as out_file:
-                        await out_file.write(self._pending[file_name])
-                if await aiofiles.os.path.exists(final_path):
-                    await aiofiles.os.remove(final_path)
-
-                if await aiofiles.os.path.exists(pending_path):
-                    await aiofiles.os.rename(pending_path, final_path)
+                async with aiofiles.open(final_path, "wb") as out_file:
+                    await out_file.write(self._pending[file_name])
         except Exception as e:
             raise FileWriteError(f"Failed to commit files: {e}")
         finally:
@@ -109,11 +79,7 @@ class AsyncFileSession:
         Удаляет временные файлы.
         """
         try:
-            for file_name in list(self._pending.keys()):
-                pending_name = f"{self._pending_prefix}{file_name}"
-                pending_path = os.path.join(self._storage_path, pending_name)
-                if await aiofiles.os.path.exists(pending_path):
-                    await aiofiles.os.remove(pending_path)
+            pass  # В данной реализации нет временных файлов, так что просто очищаем pending
         except Exception as e:
             raise FileWriteError(f"Failed to rollback files: {e}")
         finally:
@@ -156,7 +122,7 @@ class AsyncFileSession:
             files = await aiofiles.os.listdir(self._storage_path)
         except Exception:
             raise LocalStorageUnavailableError("File storage is currently unavailable")
-        return [f for f in files if not f.startswith(self._pending_prefix)]
+        return files
 
     async def list_all_files(self) -> list[str]:
         try:
