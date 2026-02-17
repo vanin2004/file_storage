@@ -1,8 +1,5 @@
 from pydantic_settings import BaseSettings
 
-from src.config.pg import PgConfig
-from src.config.fs import FsConfig
-
 
 class Settings(BaseSettings):
     """
@@ -12,7 +9,7 @@ class Settings(BaseSettings):
 
     # Основные настройки приложения
     app_name: str = "Orbis File Storage"
-    app_version: str = "2.0.0"
+    app_version: str = "3.0.0"
     debug: bool = False
 
     # Настройки базы данных
@@ -20,7 +17,6 @@ class Settings(BaseSettings):
 
     # Настройки файлового хранилища
     file_storage_path: str = "/app/uploads"
-    pending_file_prefix: str = "pending_"
 
     # Настройки сервера
     app_host: str = "0.0.0.0"
