@@ -21,20 +21,20 @@ from src.services.file_holder_service import (
     ServiceFileAlreadyExistsError,
 )
 
-from src.injectors.database import create_database, initialize_database
-from src.injectors.localstorage import create_file_storage
+from src.injectors.connections import (
+    create_database,
+    initialize_database,
+    create_file_storage,
+)
 
 from src.settings import settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Инициализация  psql")
     create_database()
     await initialize_database()
-    print("Инициализация  файлового хранилища")
     create_file_storage()
-    print("инициализация завершена, запуск приложения")
     yield
 
 

@@ -2,8 +2,7 @@ from fastapi import Depends
 from typing import AsyncGenerator
 
 from src.services import FileHolderService
-from .database import get_db
-from .localstorage import get_fs
+from .connections import get_db, get_fs
 
 
 async def get_file_holder_service(

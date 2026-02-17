@@ -1,8 +1,0 @@
-fastapi
-uvicorn[standard]
-sqlalchemy[asyncio]
-pydantic
-pydantic-settings
-python-multipart
-asyncpg
-aiofiles

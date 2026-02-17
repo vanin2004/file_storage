@@ -10,7 +10,7 @@ from .schemas.schemas import (
     FilePath,
 )
 
-from src.injectors.file_holder_service import get_file_holder_service
+from src.injectors.services import get_file_holder_service
 from src.services import FileHolderService
 
 router = APIRouter()
