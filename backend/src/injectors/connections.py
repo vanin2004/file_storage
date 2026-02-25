@@ -1,16 +1,14 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
-from typing import AsyncGenerator
-import time
-from fastapi import Depends
-from functools import lru_cache
-
-from src.config import pg_config, fs_config
-
-from src.models import Base
-
 import os
-from typing import Callable
+import time
+from functools import lru_cache
+from typing import AsyncGenerator, Callable
+
+import sqlalchemy_utils as sa_utils
+from fastapi import Depends
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from src.config import fs_config, pg_config
+from src.models import Base
 from src.services import AsyncFileService
 
 
@@ -35,6 +33,9 @@ class DatabaseOperationError(DatabaseError):
 @lru_cache(maxsize=1)
 def create_engine():
     """Создает и кэширует асинхронный движок базы данных."""
+
+    if sa_utils.database_exists(pg_config.database_url):
+        return create_async_engine(pg_config.database_url, echo=pg_config.debug_mode)
 
     config = pg_config
     return create_async_engine(config.database_url, echo=config.debug_mode)
