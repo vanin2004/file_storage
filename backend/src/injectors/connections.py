@@ -35,7 +35,7 @@ def create_engine():
     """Создает и кэширует асинхронный движок базы данных."""
 
     if sa_utils.database_exists(pg_config.database_url):
-        return create_async_engine(pg_config.database_url, echo=pg_config.debug_mode)
+        sa_utils.create_database(pg_config.database_url)
 
     config = pg_config
     return create_async_engine(config.database_url, echo=config.debug_mode)
