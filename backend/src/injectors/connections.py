@@ -34,7 +34,7 @@ class DatabaseOperationError(DatabaseError):
 def create_engine():
     """Создает и кэширует асинхронный движок базы данных."""
 
-    if sa_utils.database_exists(pg_config.database_url):
+    if not sa_utils.database_exists(pg_config.database_url):
         sa_utils.create_database(pg_config.database_url)
 
     config = pg_config
