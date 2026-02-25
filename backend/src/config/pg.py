@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from .config_base import ConfigBase
 
 

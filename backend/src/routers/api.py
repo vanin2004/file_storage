@@ -1,13 +1,12 @@
-from fastapi.routing import APIRouter
-from fastapi import Response, UploadFile, File, Form, Query, Depends
 from uuid import UUID
 
-from src.models import FileUpdate, Filename, FileExtension, FilePath, FileRead
-
+from fastapi import Depends, File, Form, Query, Response, UploadFile
+from fastapi.routing import APIRouter
 from src.injectors import get_file_holder_service
+from src.models import FileExtension, Filename, FilePath, FileRead, FileUpdate
 from src.services import FileHolderService
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 
 def _to_file_meta_read(meta) -> FileRead:
