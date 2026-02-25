@@ -1,4 +1,4 @@
-# Orbis File Storage
+# File Storage
 
 Backend веб-приложение для управления файловым хранилищем, разработанное на FastAPI с использованием PostgreSQL базы данных.
 
